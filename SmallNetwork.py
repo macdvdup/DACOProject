@@ -1,31 +1,31 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Jan 15 03:32:20 2023
-
 @author: david
 """
 
 import torch.nn as nn
 
 class SmallNetwork(nn.Module):
-    def __init__(self, inputSize, numClasses, fc1,fc2,dropout):
+    def __init__(self, inputSize, numClasses, fc1,fc2,fc3,dropout):
         super().__init__()
         
         # Linear transformations - hidden Layers and Output Layer
         self.hiddenLay1 = nn.Linear(inputSize,fc1)
         self.hiddenLay2 = nn.Linear(fc1,fc2)
-        self.output = nn.Linear(fc2, numClasses)
+        self.hiddenLay3 = nn.Linear(fc2,fc3)
+
+        self.output = nn.Linear(fc3, numClasses)
         
         # Define tanH activation and softmax for output 
         self.tanHAct = nn.Tanh()
         self.softmax = nn.Softmax(dim=1)
-        self.ReLU = nn.ReLU()
         
         #  Define proportion or neurons to dropout
         self.dropout = nn.Dropout(dropout)
         
         self.batchnorm1 = nn.BatchNorm1d(fc1)
         self.batchnorm2 = nn.BatchNorm1d(fc2)
+        self.batchnorm3 = nn.BatchNorm1d(fc3)
 
         self.apply(self._init_weights)
         
@@ -38,6 +38,10 @@ class SmallNetwork(nn.Module):
         # Second Layer - Hidden Layer with tanH Activation
         x = self.hiddenLay2(x)
         x = self.batchnorm2(x)
+        x = self.tanHAct(x)
+
+        x = self.hiddenLay3(x)
+        x = self.batchnorm3(x)
         x = self.tanHAct(x)
 
         x = self.output(x)

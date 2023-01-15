@@ -31,18 +31,20 @@ FOR GOOGLE COLLAB
 from google.colab import drive 
 drive.mount('/gdrive')'''
 
-# Sets a unique time to give to 
+# Sets a unique time to give to files
 current_dateTime = str(datetime.now()).split(" ")[1]
 current_dateTime=current_dateTime.replace('.', '').replace(':', '')
 
 #Set Paths
-path = os.getcwd() 
+path = os.getcwd() # Select the Project folder as the working directory
+
+pathDatasets = os.path.join(path, "datasets")
 pathToSave = os.path.join(path, "figures")
 pathModel= os.path.join(path, "models/bestModel"+current_dateTime)
 
 # Training, Validation and Test Sets
-trainSet= BaseDataset("new_TrainIn3.csv","new_TrainOut3.csv",path) 
-evalSet = BaseDataset("EvalIn3.csv","EvalOut3.csv",path) 
+trainSet= BaseDataset("new_TrainIn3.csv","new_TrainOut3.csv",pathDatasets) 
+evalSet = BaseDataset("EvalIn3.csv","EvalOut3.csv",pathDatasets) 
 
 # Get number of input Features and number of classes (46 and 5)
 num_input_features= trainSet.infoInput.shape[1]
@@ -51,29 +53,35 @@ num_classes= trainSet.infoOutput.shape[1]
 # Set number of nodes in hiddenLayer1 and hiddenLayer2, and the dropoutRate,
 fc1=100
 fc2=50
-dropoutRate=0.0
+fc3=20
+dropoutRate=0.1
 weight_decay=5E-4
 
 # Set Model
-model=SmallNetwork(num_input_features,num_classes,fc1,fc2,dropoutRate)
+model=SmallNetwork(num_input_features,num_classes,fc1,fc2,fc3,dropoutRate)
 motor_classes = ('LF', 'LH','RF','RH','T')
 
-# Set optimizer and Criterion for 
+# Set optimizer and Criterion for1 
 learning_rate=0.0005
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay) #
 criterion= nn.CrossEntropyLoss()
 
+# Select number of epochs, batch size and set Dataloader
+
+num_epochs=5000
 batch_size=len(trainSet)
 trainloader = DataLoader(trainSet, batch_size=batch_size)
 evaloader = DataLoader(evalSet, batch_size=batch_size)
 
-num_epochs=1000
+
+''' TRAINING THE MODEL AND VALIDATION'''
 trainingAccuracy=[]
 evalAccuracy=[]
 trainingLoss=[]
 epochList=[]
 epochMax=0
 maxAcc=0
+
 for epoch in tqdm.tqdm(range(num_epochs)):
   # Initializing variables and append epoch number
   epochList.append(epoch)  
@@ -87,17 +95,18 @@ for epoch in tqdm.tqdm(range(num_epochs)):
 
     output = model(input)
     
-    loss = criterion(output, label.double())
-    loss.backward()
-    optimizer.step()
+    loss = criterion(output, label.double()) # Calculate Loss Function
+    loss.backward() # Execute gradient descent
+    optimizer.step() # Implement step on the optimizer algorithm
     
+    # Data for evaluation of the training process
     _, predicted = torch.max(output.data, 1)
     _,labelClass = torch.max(label, 1)
     
     correct += (predicted == labelClass).sum().item()
     total += labelClass.size(0)
 
-  #Training Data
+  #Training Accuracy
   trainAcc = 100 * correct / total
   trainingAccuracy.append(trainAcc)
 
@@ -105,6 +114,7 @@ for epoch in tqdm.tqdm(range(num_epochs)):
   correct=0
   total=0  
   
+  # Set torch.no_grad() soo the optimizer is deactivated for this part
   model.eval()
   with torch.no_grad():
     for i, data in enumerate(evaloader, 0):
@@ -119,6 +129,7 @@ for epoch in tqdm.tqdm(range(num_epochs)):
   #Evaluation Data
   evalAcc = 100 * correct / total
   evalAccuracy.append(evalAcc)
+  # Save the current model state when the Validation Accuracy
   if maxAcc<=evalAcc:
       maxAcc=evalAcc
       epochMax=epoch
@@ -126,7 +137,7 @@ for epoch in tqdm.tqdm(range(num_epochs)):
 
 print('Best Model Accuracy in Eval Set: ', maxAcc, ' %')
 
-# PLOTS OF Training And Eval Accuracy
+# PLOT OF Training  Accuracy
 fig1, ax1 = plt.subplots(figsize = (20, 6))
 ax1.plot(np.array(epochList), np.array(trainingAccuracy), '--', color = 'blue')
 
@@ -134,6 +145,7 @@ figure_name = 'trainAcc2'+current_dateTime
 figure_path = os.path.join(pathToSave, f"{figure_name}")
 plt.savefig(fname = figure_path, bbox_inches = 'tight')
 
+# PLOT OF Validation Accuracy
 fig2, ax2 = plt.subplots(figsize = (20, 6))
 ax2.plot(np.array(epochList), np.array(evalAccuracy), '--', color = 'red')
 ax2.plot(np.array(epochMax), np.array(maxAcc), 'o', color = 'green')
@@ -143,7 +155,9 @@ figure_path = os.path.join(pathToSave, f"{figure_name}")
 plt.savefig(fname = figure_path, bbox_inches = 'tight')
 
 # TESTING
-testSet= BaseDataset("TestIn.csv","TestOut.csv",path)
+
+# Set Dataset and DataLoader
+testSet= BaseDataset("TestIn.csv","TestOut.csv",pathDatasets)
 testloader = DataLoader(testSet, shuffle=True)  
 
 correct=0
@@ -154,13 +168,14 @@ testLabels = np.array([])
 testProbs = np.zeros(shape=(1,5))
 testLabelsArrays = np.zeros(shape=(1,5))
 
-modelToTest = SmallNetwork(num_input_features,num_classes,fc1,fc2,dropoutRate)
+modelToTest = SmallNetwork(num_input_features,num_classes,fc1,fc2,fc3,dropoutRate)
 modelToTest =  modelToTest.load_state_dict(torch.load(pathModel))
 with torch.no_grad():
   
   for i, data in enumerate(testloader, 0):
-    
+    # Get Values from dataset
     input,label = data['input'], data['labels']
+    # Get Predictions
     output = model(input)
     _, predicted = torch.max(output.data, 1)
     _, labelClass = torch.max(label, 1)
@@ -173,6 +188,7 @@ with torch.no_grad():
     correct += (predicted == labelClass).sum().item()
     total += labelClass.size(0)
 
+# Get Test Accuracy
 testProbs = testProbs[1:,:]
 testLabelsArrays = testLabelsArrays[1:,:]
 testAcc = 100 * correct / total
@@ -230,6 +246,8 @@ figure_name = 'plotsAUC2'+current_dateTime
 figure_path = os.path.join(pathToSave, f"{figure_name}")
 plt.savefig(fname = figure_path, bbox_inches = 'tight')
 
+
+# Gather all the relevant data and export it to a .csv file
 optName= type (optimizer).__name__
 dataToSave={"model": str(model),"test_acc":testAcc,"learning_rate":learning_rate,"dropout_Rate":model.dropout.p,"batch_size":batch_size,"weight_decay":weight_decay,"optimizer":optName}
 moreData={}
