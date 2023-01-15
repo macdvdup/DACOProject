@@ -33,7 +33,7 @@ motor_classes = ['LF', 'LH','RF','RH','T']
 testSet= BaseDataset("TestIn.csv","TestOut.csv",path)
 testloader = DataLoader(testSet, batch_size=1,shuffle=True)  
 
-# Initialize your model
+# Initialize your model, with Correct model specifications (Check results.csv)
 model = SmallNetwork(46,5,100,50,20,0.0)
 
 model.load_state_dict(torch.load(pathModel, map_location='cpu'))

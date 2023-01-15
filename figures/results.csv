@@ -345,3 +345,15 @@
   (batchnorm2): BatchNorm1d(50, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
   (batchnorm3): BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
 )",78.0,0.0005,0.1,1000,0,Adam,0.8938671874999999,0.96962890625,0.8881640625,0.988515625,0.993125
+"SmallNetwork(
+  (hiddenLay1): Linear(in_features=46, out_features=100, bias=True)
+  (hiddenLay2): Linear(in_features=100, out_features=50, bias=True)
+  (hiddenLay3): Linear(in_features=50, out_features=20, bias=True)
+  (output): Linear(in_features=20, out_features=5, bias=True)
+  (tanHAct): Tanh()
+  (softmax): Softmax(dim=1)
+  (dropout): Dropout(p=0.2, inplace=False)
+  (batchnorm1): BatchNorm1d(100, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (batchnorm2): BatchNorm1d(50, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (batchnorm3): BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+)",78.25,0.0005,0.2,1000,0.001,Adam,0.85802734375,0.97814453125,0.887109375,0.9634375000000001,0.98654296875

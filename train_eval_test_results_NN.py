@@ -54,8 +54,8 @@ num_classes= trainSet.infoOutput.shape[1]
 fc1=100
 fc2=50
 fc3=20
-dropoutRate=0.1
-weight_decay=5E-4
+dropoutRate=0.2
+weight_decay=1E-3
 
 # Set Model
 model=SmallNetwork(num_input_features,num_classes,fc1,fc2,fc3,dropoutRate)
@@ -68,7 +68,7 @@ criterion= nn.CrossEntropyLoss()
 
 # Select number of epochs, batch size and set Dataloader
 
-num_epochs=5000
+num_epochs=10000
 batch_size=len(trainSet)
 trainloader = DataLoader(trainSet, batch_size=batch_size)
 evaloader = DataLoader(evalSet, batch_size=batch_size)
@@ -157,7 +157,7 @@ plt.savefig(fname = figure_path, bbox_inches = 'tight')
 # TESTING
 
 # Set Dataset and DataLoader
-testSet= BaseDataset("TestIn.csv","TestOut.csv",pathDatasets)
+testSet= BaseDataset("TestIn3.csv","TestOut3.csv",pathDatasets)
 testloader = DataLoader(testSet, shuffle=True)  
 
 correct=0

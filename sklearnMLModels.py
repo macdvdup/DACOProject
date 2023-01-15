@@ -31,23 +31,24 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using {device} device")
 
 path = os.getcwd() 
+path = os.path.join(path,"datasets")
 
 trainData= BaseDataset("new_TrainIn3.csv","new_TrainOut3.csv",path)
-X_train = trainData.X.to_numpy()
-y_train_5d = trainData.y.to_numpy()  # shape (400,5)
-y_train_1d = np.argmax(trainData.y.to_numpy(),1) # shape (400, )
+X_train = trainData.infoInput.to_numpy()
+y_train_5d = trainData.infoOutput.to_numpy()  # shape (400,5)
+y_train_1d = np.argmax(trainData.infoOutput.to_numpy(),1) # shape (400, )
 print(y_train_1d.shape)
 
 valData = BaseDataset("EvalIn3.csv","EvalOut3.csv",path)
-X_val = valData.X.to_numpy()
-y_val_onehot = valData.y.to_numpy()
+X_val = valData.infoInput.to_numpy()
+y_val_onehot = valData.infoOutput.to_numpy()
 y_val = np.argmax(y_val_onehot,1)
 print(y_val.shape)
 
 testData= BaseDataset('TestIn3.csv','TestOut3.csv',path)
-X_test = testData.X.to_numpy()
-y_test_5d = testData.y.to_numpy()
-y_test_1d = np.argmax(testData.y.to_numpy(),1)
+X_test = testData.infoInput.to_numpy()
+y_test_5d = testData.infoOutput.to_numpy()
+y_test_1d = np.argmax(testData.infoOutput.to_numpy(),1)
 print(y_test_1d.shape)
 
 output_classes = ('L. Foot', 'L. Hand','R. Foot','R. Hand','Tongue')
@@ -78,29 +79,6 @@ display= display.plot(cmap=plt.cm.Blues, xticks_rotation=0)
 plt.title('Confusion Matrix - KNeighborsClassifier')
 
 
-"""Linear Regression"""
-
-
-# define model
-modelLinReg = LinearRegression()
-
-# fit model
-modelLinReg.fit(X_train, y_train_1d)
-
-# Prediction
-yhatLinReg = modelLinReg.predict(X_test)
-
-yhatLinReg = np.rint(yhatLinReg)
-
-accLinReg = np.mean(yhatLinReg == y_test_1d)
-
-print(accLinReg)
-
-# determine the confusion matrix
-confMatrix = confusion_matrix(y_test_1d, yhatLinReg, normalize = None)
-display = ConfusionMatrixDisplay(confusion_matrix = confMatrix, display_labels = output_classes)
-display= display.plot(cmap=plt.cm.Blues, xticks_rotation=0)
-plt.title('Confusion Matrix - LinearRegression')
 
 """Logistic Regression"""
 
