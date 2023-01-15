@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-
+"""
+One vs Rest Approach (binary logistic regression)
+"""
 import numpy as np
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
@@ -8,7 +10,7 @@ import matplotlib.pyplot as plt
 def sigmoid(x):
   return 1 / (1 + np.exp(-x))
 
-# Binary cross-entropy LOSS
+# Binary cross-entropy loss
 def binary_cross_entropy(y, y_pred):
   return -(y * np.log(y_pred) + (1 - y) * np.log(1 - y_pred))
 
@@ -27,8 +29,7 @@ class LogisticRegression:
 
   def backward(self, X, y, y_pred, w):
     # Regularization strenght (L2)
-    lambda_value = 0
-    #regularization_term = (lambda_value/2*len(y))*np.sum(np.square(self.w))
+    lambda_value = 0.0001
     regularization_term = lambda_value * w
     # Compute the GRADIENTS of the weights and bias  
     dw = np.dot(X.T, y_pred - y) / len(y)  +  regularization_term 
@@ -59,8 +60,6 @@ class LogisticRegression:
         loss = binary_cross_entropy(y, y_pred).mean()
         #print("Cost at iteration {}: {:.4f}".format(i, loss))   
 
-
-
       # Validation step
       y_pred_val = self.forward(X_val)  # array of probabilities
       y_pred_val = self.predict(y_pred_val) # array binary
@@ -74,19 +73,9 @@ class LogisticRegression:
         max_iteration = i
         self.best_w = self.w
         self.best_b = self.b
-    print(f"W shape: ",self.best_w.shape)
+ 
     print(f"Iteration where val_acc reached maximum: ", max_iteration)
     print(f"validation accuracy",max_acc)
-    # guardar modelo "à mão"
-     
-    #print("Final loss after %d steps is: %.10f " % binary_cross_entropy(y,y_pred))
-
-    # determine the confusion matrix
-    confMatrix = confusion_matrix(y_val, y_pred_val, normalize = None)
-    output_classes = ('L. Foot', 'L. Hand','R. Foot','R. Hand','Tongue')
-    display = ConfusionMatrixDisplay(confusion_matrix = confMatrix, display_labels = output_classes)
-    display= display.plot(cmap=plt.cm.Blues, xticks_rotation=0)
-    plt.title('Confusion Matrix - LogisticRegression (OvR)')
 
 
     return self
@@ -98,13 +87,13 @@ class LogisticRegression:
         return np.array(y_predict)    
     
   def predict_proba(self, X):      
-        y_predict = [] #is a list 
-        for t in X:               # for each row in X
+        y_predict = []  
+        for t in X:        
             y_predict.append(self.forward(t))
         return np.array(y_predict)
 
   def best_predict_proba(self,X):
-        y_predict = [] #is a list 
+        y_predict = [] 
         for t in X:
            y_predict.append(sigmoid(np.dot(t,self.best_w)+self.best_b))
         return np.array(y_predict)
@@ -120,14 +109,14 @@ class OvR_LogisticRegression:
     for i in range(self.num_classes):
       # Train a binary classifier for class i
       
-      y_binary = (y == i).astype(int)            # y_binary tipo [0 0 0 1 0 0 0 0 1 0 1 1 0 0]
+      y_binary = (y == i).astype(int)        
       y_val_binary = (y_val == i).astype(int) 
       self.model[i].fit(X, y_binary, X_val, y_val_binary, learning_rate, num_iterations)
     
     return self
 
   def predict(self, X):
-    y_pred = np.zeros((X.shape[0], self.num_classes))  # (200,5)
+    y_pred = np.zeros((X.shape[0], self.num_classes))
    
     for i in range(self.num_classes):
       # Predict the probability of class i using the binary classifier
@@ -135,7 +124,7 @@ class OvR_LogisticRegression:
 
   
       y_probabilities = y_pred
-      y_classification = np.argmax(y_pred, axis=1) # [2 0 4 0...]                
+      y_classification = np.argmax(y_pred, axis=1)          
       
     # Return the class with the highest probability
     return y_classification, y_probabilities
