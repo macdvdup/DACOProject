@@ -153,9 +153,10 @@ for i in range(len(t_values)):
 out_pd = pd.DataFrame(out)
 
 #data output
-lf_pd.to_csv(os.path.join(path, "TrainLF_raw.csv"),header=True,sep=',',index=False)
-lh_pd.to_csv(os.path.join(path, "TrainLH_raw.csv"),header=True,sep=',',index=False)
-rf_pd.to_csv(os.path.join(path, "TrainRF_raw.csv"),header=True,sep=',',index=False)
-rh_pd.to_csv(os.path.join(path, "TrainRH_raw.csv"),header=True,sep=',',index=False)
-t_pd.to_csv(os.path.join(path, "TrainT_raw.csv"),header=True,sep=',',index=False)
-out_pd.to_csv(os.path.join(path, "TrainOut3.csv"),header=True,sep=',',index=False)
+#input files must be append manually in the order: LF,LH,RF,RH,T in order to obtain new_TrainIn3.csv
+lf_pd.to_csv(os.path.join(path, "TrainLF.csv"),header=True,sep=',',index=False)
+lh_pd.to_csv(os.path.join(path, "TrainLH.csv"),header=True,sep=',',index=False)
+rf_pd.to_csv(os.path.join(path, "TrainRF.csv"),header=True,sep=',',index=False)
+rh_pd.to_csv(os.path.join(path, "TrainRH.csv"),header=True,sep=',',index=False)
+t_pd.to_csv(os.path.join(path, "TrainT.csv"),header=True,sep=',',index=False)
+out_pd.to_csv(os.path.join(path, "new_TrainOut3.csv"),header=True,sep=',',index=False)
