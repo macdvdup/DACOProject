@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-"""**Multinomial (softmax)**"""
+"""**Multinomial approach (softmax)**"""
 import numpy as np
 
 class MulticlassLogisticRegression:
     def __init__(self, lr=0.1, num_iter=5000, fit_intercept=True):
         self.lr = lr
         self.num_iter = num_iter
-        self.fit_intercept = fit_intercept
+        self.fit_intercept = fit_intercept # bias b0
         self.lambda_value = 0.001 #Regularization term
         self.best_W = None
     
@@ -54,18 +54,13 @@ class MulticlassLogisticRegression:
             if max_acc <= val_acc:
               max_acc = val_acc
               max_iteration = i
+            # saving weights at the highest validation accuracy
               self.best_W = self.W
-
-        if (self.best_W.all==self.W.all):
-          print("WTF sao iguais?")
-        
-        print(f"Final W value at row 40:",self.W[40,:])
-        print(f"Final best_W value at row 40:",self.best_W[40,:])
 
         print(f"Iteration where val_acc reached maximum: ",max_iteration)
         print(f"validation accuracy",max_acc)
 
-
+    # With the validation weight
     def best_predict_prob(self, X):
         if self.fit_intercept:
             X = self.__add_intercept(X)
@@ -75,6 +70,7 @@ class MulticlassLogisticRegression:
     def best_predict(self, X):
         return np.argmax(self.predict_prob(X), axis=1)
 
+    # With the final weight
     def predict_prob(self, X):
         if self.fit_intercept:
             X = self.__add_intercept(X)
