@@ -9,7 +9,7 @@ import pandas as pd
 import os
 
 from OvR_LogisticRegression import OvR_LogisticRegression
-from MulticlassLogisticRegression import MulticlassLogisticRegression
+from Multinomial_LogisticRegression import Multinomial_LogisticRegression
 from BaseDataset import BaseDataset
 
 import matplotlib.pyplot as plt

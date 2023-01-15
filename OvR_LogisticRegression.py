@@ -15,7 +15,7 @@ def binary_cross_entropy(y, y_pred):
   return -(y * np.log(y_pred) + (1 - y) * np.log(1 - y_pred))
 
 # Logistic regression classifier
-class LogisticRegression:
+class BinaryLogisticRegression:
   def __init__(self):
     self.w = None
     self.b = None
@@ -102,7 +102,7 @@ class LogisticRegression:
 class OvR_LogisticRegression:
   def __init__(self, num_classes):
     self.num_classes = num_classes
-    self.model = [LogisticRegression() for _ in range(num_classes)]
+    self.model = [BinaryLogisticRegression() for _ in range(num_classes)]
 
   def fit(self, X, y, X_val, y_val, learning_rate,num_iterations):
       
