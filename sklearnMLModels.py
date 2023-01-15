@@ -16,8 +16,9 @@ import os
 
 import matplotlib.pyplot as plt
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeRegressor
+from sklearn import svm
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 
@@ -78,30 +79,6 @@ display= display.plot(cmap=plt.cm.Blues, xticks_rotation=0)
 plt.title('Confusion Matrix - KNeighborsClassifier')
 
 
-"""Linear Regression"""
-
-
-# define model
-modelLinReg = LinearRegression()
-
-# fit model
-modelLinReg.fit(X_train, y_train_1d)
-
-# Prediction
-yhatLinReg = modelLinReg.predict(X_test)
-
-yhatLinReg = np.rint(yhatLinReg)
-
-accLinReg = np.mean(yhatLinReg == y_test_1d)
-
-print(accLinReg)
-
-# determine the confusion matrix
-confMatrix = confusion_matrix(y_test_1d, yhatLinReg, normalize = None)
-display = ConfusionMatrixDisplay(confusion_matrix = confMatrix, display_labels = output_classes)
-display= display.plot(cmap=plt.cm.Blues, xticks_rotation=0)
-plt.title('Confusion Matrix - LinearRegression')
-
 """Logistic Regression"""
 
 from sklearn.linear_model import LogisticRegression
@@ -125,13 +102,9 @@ display = ConfusionMatrixDisplay(confusion_matrix = confMatrix, display_labels =
 display= display.plot(cmap=plt.cm.Blues, xticks_rotation=0)
 plt.title('Confusion Matrix - LogisticRegression')
 
-"""Naive Bayes (Multinomial)
+"""Naive Bayes (Multinomial)"""
 
-**Why can't negative data be used here?**
-
-MultinomialNB assumes that features have multinomial distribution which is a generalization of the binomial distribution. Neither binomial nor multinomial distributions can contain negative values.
-"""
-
+# Transform negative inputs to normalized (between 0 and 1)
 def normalize(data):
     data_min = np.min(data)
     data_max = np.max(data)
@@ -140,20 +113,14 @@ def normalize(data):
 modelMultNB = MultinomialNB()
 
 # normalize array to values between [0 1]
-
 normalized_X_train = normalize(X_train)
 normalized_X_test = normalize(X_test)
 
 # fit model
-#vect = CountVectorizer()
-#vect.fit(trainData.infoInput)
-#input = vect.transform(trainData.infoInput)
-
 modelMultNB.fit(normalized_X_train, y_train_1d)
 
 # Test it
 yhatMultNB = modelMultNB.predict(normalized_X_test)
-
 
 accMultNB = np.mean(yhatMultNB == y_test_1d)
 
@@ -166,8 +133,6 @@ display= display.plot(cmap=plt.cm.Blues, xticks_rotation=0)
 plt.title('Confusion Matrix - MultinomialNB')
 
 """Decision Tree"""
-
-from sklearn.tree import DecisionTreeRegressor
 
 # define model
 modelDecTree = DecisionTreeRegressor()
@@ -188,23 +153,24 @@ display = ConfusionMatrixDisplay(confusion_matrix = confMatrix, display_labels =
 display= display.plot(cmap=plt.cm.Blues, xticks_rotation=0)
 plt.title('Confusion Matrix - DecisionTreeRegressor')
 
-from sklearn import svm
 
-model = svm.SVC(kernel='linear', C=1)
+"""Support Vector Machine"""
+# define model
+modelSVM = svm.SVC(kernel='linear', C=1)
 
 # fit model
-model.fit(X_train, y_train_1d)
+modelSVM.fit(X_train, y_train_1d)
 
 # Test it
-yhat = model.predict(X_test)
+yhatSVM = modelSVM.predict(X_test)
 
-acc = np.mean(yhat == y_test_1d)
-print(yhat)
+accSVM = np.mean(yhatSVM == y_test_1d)
+print(yhatSVM)
 
-print(acc)
+print(accSVM)
 
 # determine the confusion matrix
-confMatrix = confusion_matrix(y_test_1d, yhat, normalize = None)
+confMatrix = confusion_matrix(y_test_1d, yhatSVM, normalize = None)
 display = ConfusionMatrixDisplay(confusion_matrix = confMatrix, display_labels = output_classes)
 display= display.plot(cmap=plt.cm.Blues, xticks_rotation=0)
 plt.title('Confusion Matrix - svm')
