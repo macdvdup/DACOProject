@@ -7,9 +7,10 @@ Created on Sun Jan 15 18:59:47 2023
 import numpy as np
 import pandas as pd
 import os
+from torch.utils.data import Dataset
 
-from OvR_LogisticRegression import OvR_LogisticRegression
-from Multinomial_LogisticRegression import Multinomial_LogisticRegression
+from OvR_LogisticRegression import OvR_LogisticRegression, BinaryLogisticRegression
+from Multinomial_LogisticRegression import MulticlassLogisticRegression
 from BaseDataset import BaseDataset
 
 import matplotlib.pyplot as plt
@@ -20,77 +21,54 @@ from sklearn.metrics import roc_auc_score
 
 path = os.getcwd() 
 
-"""# Logistic Regression (from scratch)"""
+"""#
 
-# Not used
+ Small changes on the BaseDataset
 
-dataIn = pd.read_csv(os.path.join(path, "TrainIn3.csv"),sep = ',',skiprows = 1,header = None)
-dataOut = pd.read_csv(os.path.join(path, "TrainOut3.csv"),sep = ',',skiprows = 1,header = None)
-dataIn = dataIn.dropna(axis=1)
-size= len(dataIn)
+ Reading csv files
 
-# Set training, eval and test percentages
-print(size)
+"""
 
-propTrain=2/3
-# Set training, eval and test 
-trainDataIn = dataIn[0:round(propTrain*size)]
-evalDataIn = dataIn[round(propTrain*size):]
+# Dataset
+class BaseDataset(Dataset):
+    def __init__ (self, csv_fileIn,csv_fileOut, root_dir,isTest=False):
+        self.X = pd.read_csv(os.path.join(root_dir, csv_fileIn),sep = ',',skiprows = 1,header = None)
+        self.y = pd.read_csv(os.path.join(root_dir, csv_fileOut),sep = ',',skiprows = 1,header = None)
+        self.root_dir = root_dir
+        
+    def __len__ (self):
+        return len(self.X)
+    
+    def __getitem__ (self, index):
+        # gets the important information about each image: its name and label
+        input = self.X.iloc[index].to_numpy().astype(np.float32)
+        labels = self.y.iloc[index].to_numpy().astype(np.float32)
+              
+        sample = {'input': input, 'labels': labels}
+        return sample
 
-trainDataOut = dataOut[0:round(propTrain*size)]
-evalDataOut = dataOut[round(propTrain*size):]
 
-trainDataIn.to_csv(os.path.join(path, "new_TrainIn.csv"),header=True,sep=',',index=False)
-evalDataIn.to_csv(os.path.join(path, "new_EvalIn.csv"),header=True,sep=',',index=False)
+trainData= BaseDataset("new_TrainIn3.csv","new_TrainOut3.csv",path)
+X_train = trainData.X.to_numpy() # shape (1000, 47)
+y_train_5d = trainData.y.to_numpy()  # shape (1000,5)
+y_train_1d = np.argmax(trainData.y.to_numpy(),1) # shape (1000, )
 
-trainDataOut.to_csv(os.path.join(path, "new_TrainOut.csv"),header=True,sep=',',index=False)
-evalDataOut.to_csv(os.path.join(path, "new_EvalOut.csv"),header=True,sep=',',index=False)
-print(trainDataIn.shape)
-print(trainDataOut.shape)
-
-# split train data into new_train and new_val
-
-#trainDataIn = dataIn[1:1800]
-#evalDataIn = dataIn[1800:2400]
-#testDataIn = dataIn[2400:3000]
-
-#trainDataOut = dataOut[1:1800]
-#evalDataOut = dataOut[1800:2400]
-#testDataOut = dataOut[2400:3000]
-
-#trainDataIn.to_csv(os.path.join(path, "new_TrainIn.csv"),header=True,sep=',',index=False)
-#evalDataIn.to_csv(os.path.join(path, "new_EvalIn.csv"),header=True,sep=',',index=False)
-#testDataIn = pd.read_csv(os.path.join(path, "TrainIn.csv"),sep=',',skiprows = 1,header = None)
-
-#trainDataOut.to_csv(os.path.join(path, "new_TrainOut.csv"),header=True,sep=',',index=False)
-#evalDataOut.to_csv(os.path.join(path, "new_EvalOut.csv"),header=True,sep=',',index=False)
-#testDataOut = pd.read_csv(os.path.join(path, "TrainOut.csv"),sep=',',skiprows = 1,header = None)
-
-#print(testDataIn.shape)
-#print(testDataOut.shape)
-
-# Do not run 
-
-trainData= BaseDataset("new_TrainIn.csv","new_TrainOut.csv",path)
-X_train = trainData.X.to_numpy()
-y_train_5d = trainData.y.to_numpy()  # shape (400,5)
-y_train_1d = np.argmax(trainData.y.to_numpy(),1) # shape (400, )
-valData = BaseDataset("new_EvalIn.csv","new_EvalOut.csv",path)
+valData = BaseDataset("EvalIn3.csv","EvalOut3.csv",path)
 X_val = valData.X.to_numpy()
 y_val_onehot = valData.y.to_numpy()
 y_val = np.argmax(y_val_onehot,1)
 
-
-testData= BaseDataset('TrainIn.csv','TrainOut.csv',path)
+testData= BaseDataset('TestIn3.csv','TestOut3.csv',path)
 X_test = testData.X.to_numpy()
 y_test_5d = testData.y.to_numpy()
 y_test_1d = np.argmax(testData.y.to_numpy(),1)
 
 output_classes = ('L. Foot', 'L. Hand','R. Foot','R. Hand','Tongue')
 
-"""**Multinomial (softmax)**"""
+"""# Logistic Regression (from scratch)"""
 
-# Initialize the one-vs-rest classifier
+"""**Multinomial (softmax) Approach**"""
+
 model = MulticlassLogisticRegression()
 
 # Train the classifier on the training data
@@ -107,7 +85,7 @@ best_y_pred = model.best_predict(X_test)
 
 acc = np.mean(y_pred == y_test_1d)
 acc_val =np.mean(best_y_pred == y_test_1d)
-print(f"Accuracy", acc)
+print(f"Multinomial (softmax) Approach Accuracy ", acc)
 
 print(f"Accuracy with validation", acc_val)
 
@@ -118,7 +96,9 @@ display = ConfusionMatrixDisplay(confusion_matrix = confMatrix, display_labels =
 display= display.plot(cmap=plt.cm.Blues, xticks_rotation=0)
 plt.title('LogisticRegression (Multinomial)')
 
-"""**One vs Rest**"""
+
+
+"""**One vs Rest Approach**"""
 
 
 # Initialize the one-vs-rest classifier
@@ -128,14 +108,14 @@ model = OvR_LogisticRegression(5)
 model.fit(X_train, y_train_1d, X_val, y_val,learning_rate=0.01,num_iterations=10000)
 
 # Evaluate the classifier on the
-y_pred, y_proba = model.predict(X_test)
+y_pred_2, y_proba_2 = model.predict(X_test)
 
-acc = np.mean(y_pred == y_test_1d)
-print(acc)
+acc_2 = np.mean(y_pred == y_test_1d)
+print(f"One vs Rest Approach Accuracy", acc_2)
 
 
 # determine the confusion matrix
-confMatrix = confusion_matrix(y_test_1d, y_pred, normalize = None)
+confMatrix = confusion_matrix(y_test_1d, y_pred_2, normalize = None)
 display = ConfusionMatrixDisplay(confusion_matrix = confMatrix, display_labels = output_classes)
 display= display.plot(cmap=plt.cm.Blues, xticks_rotation=0)
 plt.title('LogisticRegression (One-vs-Rest)')
@@ -154,8 +134,10 @@ for i in range(num_classes):
 
 
     # Prepares an auxiliar dataframe to help with the plots
-    testInfo = pd.Series(y_binary).rename("class").to_frame()  #  [   ]
-    testInfo['prob'] = y_proba[:, i]  #y_probs
+    testInfo = pd.Series(y_binary).rename("class").to_frame() 
+
+    # Use 'y_proba_2' if we want the One-vs-Rest ROC-AUC !!
+    testInfo['prob'] = y_proba[:, i]  
     testInfo = testInfo.reset_index(drop = True)
     
     # Plots the probability distribution for the class and the rest
